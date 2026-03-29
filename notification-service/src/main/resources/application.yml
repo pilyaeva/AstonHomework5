@@ -1,0 +1,43 @@
+server:
+  port: 8082
+
+spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: notification-group
+      auto-offset-reset: latest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: org.notificationservice.model.UserNotificationEvent
+        spring.json.trusted.packages: "*"
+
+  mail:
+    host: smtp.yandex.ru
+    port: 465
+    username: pilyaevapolina@yandex.ru
+    password: gadebkfuyvdjlfwe
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          ssl:
+            enable: true
+            trust: "*"
+      mail.smtp.connectiontimeout: 5000
+      mail.smtp.timeout: 5000
+      mail.smtp.writetimeout: 5000
+
+app:
+  mail:
+    from: pilyaevapolina@yandex.ru
+
+kafka:
+  listener:
+    notification:
+      topic: user-events
+      group-id: notification-group
