@@ -45,7 +45,7 @@ public class EmailService {
             text = "Здравствуйте! Ваш аккаунт был удалён.";
         } else if ("CREATE".equals(operation)) {
             subject = "Создание аккаунта";
-            text = "Здравствуйте! Ваш аккаунт был успешно создан.";
+            text = "Здравствуйте! Ваш аккаунт на сайте ваш сайт был успешно создан.";
         } else {
             logger.warn("Неизвестная операция: {}", operation);
             return;
