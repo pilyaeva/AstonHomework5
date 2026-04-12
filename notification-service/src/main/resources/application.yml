@@ -2,6 +2,8 @@ server:
   port: 8082
 
 spring:
+  application:
+    name: notification-service
   kafka:
     bootstrap-servers: localhost:9092
     consumer:
@@ -13,7 +15,6 @@ spring:
         spring.json.use.type.headers: false
         spring.json.value.default.type: org.notificationservice.model.UserNotificationEvent
         spring.json.trusted.packages: "*"
-
   mail:
     host: smtp.yandex.ru
     port: 465
@@ -31,6 +32,29 @@ spring:
       mail.smtp.connectiontimeout: 5000
       mail.smtp.timeout: 5000
       mail.smtp.writetimeout: 5000
+  cloud:
+    consul:
+      host: localhost
+      port: 8500
+      discovery:
+        register: true
+        service-name: ${spring.application.name}
+        health-check-path: /actuator/health
+        health-check-interval: 10s
+        instance-id: ${spring.application.name}:${random.uuid}
+        instance-host: host.docker.internal
+        prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    readiness-state:
+      enabled: true
+    liveness-state:
+      enabled: true
 
 app:
   mail:
