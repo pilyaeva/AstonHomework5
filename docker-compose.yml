@@ -68,13 +68,36 @@ services:
     depends_on:
       - kafka
     ports:
-      - "8080:8080"
+      - "8060:8080"
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
     networks:
       - kafka-net
+
+  consul:
+    image: hashicorp/consul:1.16
+    container_name: consul-dev
+    ports:
+      - "8500:8500"
+      - "8600:8600/udp"
+    command: >
+      agent -dev
+      -client=0.0.0.0
+      -ui
+      -log-level=info
+    environment:
+      - CONSUL_LOCAL_CONFIG={"leave_on_terminate":true,"skip_leave_on_interrupt":true}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8500/v1/agent/self"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    restart: unless-stopped
 
 networks:
   kafka-net:
