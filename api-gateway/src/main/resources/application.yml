@@ -18,6 +18,10 @@ spring:
           filters:
             - StripPrefix=2
             - AddRequestHeader=X-Gateway-Source, gateway
+            - name: CircuitBreaker
+              args:
+                name: userServiceCircuitBreaker
+                fallbackUri: forward:/fallback/user-service
 
         - id: notification-service-route
           uri: lb://notification-service
@@ -25,6 +29,10 @@ spring:
             - Path=/api/notification-service/**
           filters:
             - StripPrefix=2
+            - name: CircuitBreaker
+              args:
+                name: notificationServiceCircuitBreaker
+                fallbackUri: forward:/fallback/notification-service
 
     consul:
       host: localhost
@@ -38,11 +46,29 @@ spring:
         instance-id: ${spring.application.name}:${random.uuid}
         default-instance-host: host.docker.internal
 
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        slidingWindowSize: 10
+        failureRateThreshold: 50
+        waitDurationInOpenState: 15000
+        permittedNumberOfCallsInHalfOpenState: 3
+        slowCallRateThreshold: 100
+        slowCallDurationThreshold: 2000
+    instances:
+      userServiceCircuitBreaker:
+        baseConfig: default
+      notificationServiceCircuitBreaker:
+        baseConfig: default
+
 management:
   endpoints:
     web:
       exposure:
-        include: "health,info,gateway,routes"
+        include: "health,info,gateway,routes,circuitbreakers"
   endpoint:
     gateway:
+      enabled: true
+    circuitbreakers:
       enabled: true
