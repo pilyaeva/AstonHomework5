@@ -15,6 +15,8 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - kafka-net
 
   pgadmin:
     image: dpage/pgadmin4
@@ -29,6 +31,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    networks:
+      - kafka-net
 
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.0
@@ -102,14 +106,12 @@ services:
       - kafka-net
 
   config-server:
-    image: config-server:latest
+    image: astonhomework5-config-server:latest
     container_name: config-server
     ports:
       - "8888:8888"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_CLOUD_CONSUL_HOST=consul
-      - SPRING_CLOUD_CONSUL_PORT=8500
       - ASTON_HW_CONFIG_ENCRYPT_KEY=${ASTON_HW_CONFIG_ENCRYPT_KEY}
     depends_on:
       consul:
@@ -124,19 +126,13 @@ services:
       start_period: 60s
 
   user-service:
-    image: user-service:latest
+    image: astonhomework5-user-service:latest
     container_name: user-service
     ports:
       - "8081:8081"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/user_service
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=password
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
-      - SPRING_CLOUD_CONSUL_HOST=consul
-      - SPRING_CLOUD_CONSUL_PORT=8500
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
     depends_on:
       db:
         condition: service_healthy
@@ -154,16 +150,13 @@ services:
       start_period: 50s
 
   notification-service:
-    image: notification-service:latest
+    image: astonhomework5-notification-service:latest
     container_name: notification-service
     ports:
       - "8082:8082"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
-      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
-      - SPRING_CLOUD_CONSUL_HOST=consul
-      - SPRING_CLOUD_CONSUL_PORT=8500
+      - SPRING_CONFIG_IMPORT=optional:configserver:http://config-server:8888
     depends_on:
       config-server:
         condition: service_healthy
@@ -179,15 +172,13 @@ services:
       start_period: 50s
 
   api-gateway:
-    image: api-gateway:latest
+    image: astonhomework5-api-gateway:latest
     container_name: api-gateway
     ports:
       - "8083:8083"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - SPRING_CLOUD_CONFIG_URI=http://config-server:8888
       - SPRING_CLOUD_CONSUL_HOST=consul
-      - SPRING_CLOUD_CONSUL_PORT=8500
     depends_on:
       config-server:
         condition: service_healthy
